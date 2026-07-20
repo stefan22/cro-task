@@ -68,16 +68,25 @@
     },
 
     getTariffCards: function () {
-      var tariffCardsHandle = document.querySelector(
-          "body > div._host_1kwk2_1.dynamo-dynamic-page_page__IjAOq > main > " +
-          "div._vertical-rhythm_7nsej_1._vertical-rhythm--vertical-padding-lg_7nsej_17 > div > div > div > div > " +
-          "div._vertical-rhythm_7nsej_1._vertical-rhythm--vertical-padding-lg_7nsej_17 > div > div > div > div > div > div > " +
-          "div._flex_1y3tl_1._flex--column_1y3tl_13._flex--gap-lg_1y3tl_73"
-      );
+      // stable handles instead of fixed-depth hashed selector -
+      var cardSelector = '[class*="product-card_card__"]';
+      var tileSelector = '[data-testid="tile-fragment"]';
+      var itemSelector = cardSelector + ', ' + tileSelector;
 
-      if (!tariffCardsHandle) return [];
+      var firstItem = document.querySelector(itemSelector);
+      if (!firstItem) return [];
 
-      var grid = tariffCardsHandle.children[0];
+      // grid = nearest ancestor whose direct children are the card/tile items
+      var grid = firstItem.parentElement;
+      while (grid) {
+        var directItems = Array.from(grid.children).filter(function (child) {
+          return child.matches(itemSelector) || child.querySelector(itemSelector);
+        });
+        // reached the grid level wrapper, exit
+        if (directItems.length > 1) break;
+        grid = grid.parentElement;
+      }
+
       if (!grid) return [];
 
       return Array.from(grid.children).filter(function (child) {
